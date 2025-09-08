@@ -13,7 +13,7 @@ SRC = \
   external/glad.cpp \
   error.cpp \
   shader.cpp \
-  triangle.cpp \
+  polygon.cpp \
   main.cpp
 
 #OBJ = $(addsuffix .o, $(basename $(SRC))) 
