@@ -32,6 +32,7 @@ static TrianglePtr triSeg;
 static CirclePtr circ;
 static ShaderPtr shd;
 
+glm::mat4 M;
 
 static void error (int code, const char* msg)
 {
@@ -80,21 +81,47 @@ static void initialize ()
   shd->AttachFragmentShader("shaders/fragment.glsl");
   shd->Link();
 
+  int vp[ 4 ] ;
+  glGetIntegerv (GL_VIEWPORT, vp);
+  float w = (float) vp [2];
+  float h = (float) vp [3];
+  float xmax = 1, ymax = 1, xmin = -1, ymin = -1;
+
+  auto dx = xmax - xmin;
+  auto dy = ymax - ymin;
+  if (w/h > dx/dy)
+  {
+    auto xc = (xmin + xmax)/2;
+    xmin = xc - dx/2 * w/h;
+    xmax = xc + dx/2 * w/h;
+  }
+  else
+  {
+    auto yc = (ymin + ymax)/2;
+    ymin = yc - dy/2 * h/w;
+    ymax = yc + dy/2 * h/w;
+  }
+
+  M = glm::ortho(xmin, xmax, ymin, ymax);
+
   Error::Check("initialize");
 }
 
 void setRotation(float omega)
 {
-  glm::mat4 MH (1.0f);
-  MH = glm::rotate(MH, omega, glm::vec3{0,0,-1});
-  shd->SetUniform("M", MH);
+  glm::mat4 MR (1.0f);
+  MR = MR * M;
+  MR = glm::rotate(MR, omega, glm::vec3{0,0,-1});
+  shd->SetUniform("M", MR);
 }
 
 
 void update(float dt)
 {
+
   glm::vec4 colorC = {0.678f, 0.847f, 0.902f, 1.0f};
   shd->SetUniform("color", colorC);
+  shd->SetUniform("M", M);
   circ->Draw();
 
   float omegaMin = (glm::two_pi<float>() / 3600.0f) * dt;
@@ -136,7 +163,7 @@ int main ()
 
   glfwSetErrorCallback(error);
 
-  GLFWwindow* win = glfwCreateWindow(500,500,"Circle test",nullptr,nullptr);
+  GLFWwindow* win = glfwCreateWindow(600,400,"Relógio",nullptr,nullptr);
   glfwSetFramebufferSizeCallback(win, resize);  // resize callback
   glfwSetKeyCallback(win, keyboard);            // keyboard callback
   

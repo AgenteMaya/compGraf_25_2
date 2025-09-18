@@ -7,7 +7,7 @@ INC = -I. -Iexternal/include
 PKG = $(shell pkg-config --cflags --libs glfw3)
 LDLIBS = $(PKG) -ldl
 
-TARGET = exec
+TARGET = exec2
 
 SRC = \
   external/glad.cpp \
