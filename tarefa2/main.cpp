@@ -24,7 +24,9 @@
 #include <stdlib.h>
 #include <iostream>
 
-//static TrianglePtr tri;
+static TrianglePtr triH;
+static TrianglePtr triMin;
+static TrianglePtr triSeg;
 static CirclePtr circ;
 static ShaderPtr shd;
 
@@ -48,15 +50,27 @@ static void resize (GLFWwindow* win, int width, int height)
 
 static void initialize ()
 {
-  std::vector<glm::vec2> coord = {
-     {-0.5f,-0.5f}, 
-     {0.5f,-0.5f},
+  std::vector<glm::vec2> coordH = {
+     {-0.015f,0}, 
+     {0.015f, 0},
      {0.0f, 0.5f},
   };
-  //glm::vec3 color = {173, 216, 230};
+
+  std::vector<glm::vec2> coordMin = {
+     {-0.015f,0}, 
+     {0.015f, 0},
+     {0.0f, 0.7f},
+  };
+  std::vector<glm::vec2> coordSeg = {
+     {-0.005f,0}, 
+     {0.005f, 0},
+     {0.0f, 0.7f},
+  };
   glClearColor(1.0f,1.0f,1.0f,1.0f);
-  //tri = Triangle::Make(coord);
-  circ = Circle::Make({0.0, 0.0}, 0.5);
+  triH = Triangle::Make(coordH);
+  triMin = Triangle::Make(coordMin);
+  triSeg = Triangle::Make(coordSeg);
+  circ = Circle::Make({0.0, 0.0}, 0.8);
   shd = Shader::Make();
   shd->AttachVertexShader("shaders/vertex.glsl");
   shd->AttachFragmentShader("shaders/fragment.glsl");
@@ -64,14 +78,29 @@ static void initialize ()
   Error::Check("initialize");
 }
 
-static void display (GLFWwindow* win)
+void update(float dt)
+{
+  
+}
+
+static void display (GLFWwindow* win, float t0)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shd->UseProgram();
-  glm::vec4 color = {1, 0, 0, 1};
-  shd->SetUniform("color", color);
+
+  auto t = glfwGetTime();
+
+  update(t - t0);
+
+  glm::vec4 colorC = {0.678f, 0.847f, 0.902f, 1.0f};
+  shd->SetUniform("color", colorC);
   circ->Draw();
-  //tri->Draw();
+  shd->SetUniform("color", glm::vec4{1,0,0,1});
+  triMin->Draw();
+  shd->SetUniform("color", glm::vec4{0,0,0,1});
+  triH->Draw();
+  shd->SetUniform("color", glm::vec4{0,0,0,1});
+  triSeg->Draw();
   Error::Check("display");
 }
 
@@ -83,6 +112,7 @@ int main ()
   glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);       // required for mac os
   //glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER,GLFW_TRUE);  // option for mac os
+  glfwWindowHint(GLFW_SAMPLES, 4);
 
   glfwSetErrorCallback(error);
 
@@ -106,13 +136,16 @@ int main ()
   }
 #endif
 
+  glEnable(GL_MULTISAMPLE);
+
   printf("OpenGL version: %s\n", glGetString(GL_VERSION));
 
   initialize();
 
+   auto t0 = glfwGetTime() ;
   while(!glfwWindowShouldClose(win)) {
     //idle(win);
-    display(win);
+    display(win, t);
     glfwSwapBuffers(win);
     glfwPollEvents();
   }

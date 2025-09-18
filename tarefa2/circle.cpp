@@ -12,7 +12,7 @@
 #include <glad/glad.h>
 #endif
 
-int nTri = 98;
+int nTri = 300;
 
 
 CirclePtr Circle::Make (glm::vec2 center, float raio)
@@ -70,7 +70,6 @@ Circle::Circle(glm::vec2 center, float raio)
   GLuint id;
   glGenBuffers(1,&id);
   glBindBuffer(GL_ARRAY_BUFFER, id);
-  std::cout << vertices.size() << std::endl;
   glBufferData(GL_ARRAY_BUFFER,vertices.size() * 8, vertices.data(),GL_STATIC_DRAW);
   glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,0);  // coord
   glEnableVertexAttribArray(0);
