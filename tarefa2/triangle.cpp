@@ -54,7 +54,6 @@ Triangle::Triangle(std::vector<glm::vec2> coord)
   GLuint id;
   glGenBuffers(1,&id);
   glBindBuffer(GL_ARRAY_BUFFER, id);
-  std::cout << coord.size() << std::endl;
   glBufferData(GL_ARRAY_BUFFER,coord.size() * 8, coord.data(),GL_STATIC_DRAW);
   glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,0);  // coord
   glEnableVertexAttribArray(0);

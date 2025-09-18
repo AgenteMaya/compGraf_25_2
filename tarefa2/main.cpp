@@ -14,6 +14,7 @@
 
 #endif
 
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "error.h"
 #include "triangle.h"
@@ -23,12 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <ctime>
 
 static TrianglePtr triH;
 static TrianglePtr triMin;
 static TrianglePtr triSeg;
 static CirclePtr circ;
 static ShaderPtr shd;
+
 
 static void error (int code, const char* msg)
 {
@@ -53,19 +56,20 @@ static void initialize ()
   std::vector<glm::vec2> coordH = {
      {-0.015f,0}, 
      {0.015f, 0},
-     {0.0f, 0.5f},
+     {0.0f, 0.45f},
   };
 
   std::vector<glm::vec2> coordMin = {
      {-0.015f,0}, 
      {0.015f, 0},
-     {0.0f, 0.7f},
+     {0.0f, 0.65f},
   };
   std::vector<glm::vec2> coordSeg = {
      {-0.005f,0}, 
      {0.005f, 0},
-     {0.0f, 0.7f},
+     {0.0f, 0.65f},
   };
+
   glClearColor(1.0f,1.0f,1.0f,1.0f);
   triH = Triangle::Make(coordH);
   triMin = Triangle::Make(coordMin);
@@ -75,32 +79,48 @@ static void initialize ()
   shd->AttachVertexShader("shaders/vertex.glsl");
   shd->AttachFragmentShader("shaders/fragment.glsl");
   shd->Link();
+
   Error::Check("initialize");
 }
 
-void update(float dt)
+void setRotation(float omega)
 {
-  
+  glm::mat4 MH (1.0f);
+  MH = glm::rotate(MH, omega, glm::vec3{0,0,-1});
+  shd->SetUniform("M", MH);
 }
 
-static void display (GLFWwindow* win, float t0)
+
+void update(float dt)
+{
+  glm::vec4 colorC = {0.678f, 0.847f, 0.902f, 1.0f};
+  shd->SetUniform("color", colorC);
+  circ->Draw();
+
+  float omegaMin = (glm::two_pi<float>() / 3600.0f) * dt;
+  setRotation(omegaMin);
+  shd->SetUniform("color", glm::vec4{1,0,0,1});
+  triMin->Draw();
+
+  float omegaH = (glm::two_pi<float>() / 43200.0f) * dt;
+  setRotation(omegaH);
+  shd->SetUniform("color", glm::vec4{0,0,0,1});
+  triH->Draw();
+
+  float omegaS = glm::two_pi<float>() / 60.0f * dt;
+  setRotation(omegaS);
+  shd->SetUniform("color", glm::vec4{0,0,0,1});
+  triSeg->Draw();
+}
+
+static void display (GLFWwindow* win, float t0, const float &secInicio)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shd->UseProgram();
 
   auto t = glfwGetTime();
+  update(t - t0 + secInicio);
 
-  update(t - t0);
-
-  glm::vec4 colorC = {0.678f, 0.847f, 0.902f, 1.0f};
-  shd->SetUniform("color", colorC);
-  circ->Draw();
-  shd->SetUniform("color", glm::vec4{1,0,0,1});
-  triMin->Draw();
-  shd->SetUniform("color", glm::vec4{0,0,0,1});
-  triH->Draw();
-  shd->SetUniform("color", glm::vec4{0,0,0,1});
-  triSeg->Draw();
   Error::Check("display");
 }
 
@@ -142,10 +162,15 @@ int main ()
 
   initialize();
 
-   auto t0 = glfwGetTime() ;
+
+  time_t t = time(0);
+  tm* tReal = localtime(&t);
+  auto secInicio = tReal->tm_sec + tReal->tm_min * 60 + tReal->tm_hour * 3600;
+
+  auto t0 = glfwGetTime();
   while(!glfwWindowShouldClose(win)) {
     //idle(win);
-    display(win, t);
+    display(win, t0, static_cast<float>(secInicio));
     glfwSwapBuffers(win);
     glfwPollEvents();
   }
