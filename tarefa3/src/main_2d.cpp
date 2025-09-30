@@ -1,11 +1,17 @@
-
 #ifdef _WIN32
-#define GLAD_GL_IMPLEMENTATION // Necessary for headeronly version.
-#include <glad/gl.h>
+#include <windows.h>
+// Use glad to initialize OpenGL context on Windows
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #elif __APPLE__
 #include <OpenGL/gl3.h>
-#endif
 #include <GLFW/glfw3.h>
+
+#elif __linux__
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#endif
 
 #include "scene.h"
 #include "state.h"
@@ -16,6 +22,9 @@
 #include "shader.h"
 #include "quad.h"
 #include "triangle.h"
+#include "disk.h"
+#include "moveEarth.h"
+#include "moveMoon.h"
 
 #include <iostream>
 
@@ -46,14 +55,12 @@ public:
 static void initialize (void)
 {
   // set background color: white 
-  glClearColor(0.8f,1.0f,1.0f,1.0f);
+  glClearColor(0,0,0,0);
   // enable depth test 
   glEnable(GL_DEPTH_TEST);
-
   // create objects
-  camera = Camera2D::Make(0,10,0,10);
-
-  auto trf1 = Transform::Make();
+  camera = Camera2D::Make(0,10,0,10);  
+  /* auto trf1 = Transform::Make();
   trf1->Translate(3.0f,3.0f,-0.5f);
   trf1->Scale(4.0f,4.0f,1.0f);
   auto face = Node::Make(trf1,{Color::Make(1,1,1)},{Quad::Make()});
@@ -61,17 +68,40 @@ static void initialize (void)
   trf2->Translate(5.0f,5.0f,0.0f);
   auto trf3 = Transform::Make();
   trf3->Scale(0.1f,2.0f,1.0f);
-  auto pointer = Node::Make(trf2,{Node::Make(trf3,{Color::Make(1,0,0)},{Triangle::Make()})});
+  auto pointer = Node::Make(trf2,{Node::Make(trf3,{Color::Make(1,0,0)},{Triangle::Make()})}); */
 
+
+  //auto sun = Disk::Make(300);
+  auto trfSun = Transform::Make();
+  trfSun->Scale(0.8, 0.8, 1.0);
+  trfSun->Translate(5.9,6,0);
+  auto faceSun = Node::Make(trfSun, {Color::Make(1,1,0)}, {Disk::Make(300)});
+
+  auto trfEarth = Transform::Make();
+  trfEarth->Scale(0.5, 0.5, 1.0);
+  trfEarth->Translate(15,15,0);
+  auto faceEarth = Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)});
+
+  auto trfMoon = Transform::Make();
+  trfMoon->Scale(0.3, 0.3, 1.0);
+  trfMoon->Translate(25,30,0);
+  auto faceMoon = Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)});
+
+
+  
   auto shader = Shader::Make();
-  shader->AttachVertexShader("../shaders/2d/vertex.glsl");
-  shader->AttachFragmentShader("../shaders/2d/fragment.glsl");
+  shader->AttachVertexShader("/home/mayara/Documentos/periodos/8periodo/compGraf_25_2/tarefa3/shaders/2d/vertex.glsl");
+  shader->AttachFragmentShader("/home/mayara/Documentos/periodos/8periodo/compGraf_25_2/tarefa3/shaders/2d/fragment.glsl");
   shader->Link();
-
   // build scene
-  auto root = Node::Make(shader, {face,pointer});
+  /* auto root = Node::Make(shader, {face,pointer});
   scene = Scene::Make(root);
-  scene->AddEngine(MovePointer::Make(trf2));
+  scene->AddEngine(MovePointer::Make(trf2)); */
+
+  auto root = Node::Make(shader, {faceSun, faceEarth, faceMoon});
+  scene = Scene::Make(root);
+  scene->AddEngine(MoveEarth::Make(trfEarth));
+  scene->AddEngine(MoveMoon::Make(trfMoon));
 }
 
 static void display (GLFWwindow* win)
@@ -115,30 +145,33 @@ int main ()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);       // required for mac os
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);  // option for mac os
 #endif
-
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE); 
+    glfwWindowHint(GLFW_SAMPLES, 4);
     glfwSetErrorCallback(error);
-
-    GLFWwindow* win = glfwCreateWindow(600, 400, "Window title", nullptr, nullptr);
+    GLFWwindow* win = glfwCreateWindow(600, 400, "Sun, Earth and Moon system", nullptr, nullptr);
     assert(win);
     glfwSetFramebufferSizeCallback(win, resize);  // resize callback
     glfwSetKeyCallback(win, keyboard);            // keyboard callback
 
     glfwMakeContextCurrent(win);
-#ifdef _WIN32
-    if (!gladLoadGL(glfwGetProcAddress)) {
-        printf("Failed to initialize GLAD OpenGL context\n");
-        exit(1);
-    }
-#endif
+
+  #ifdef __glad_h_
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    printf("Failed to initialize GLAD OpenGL context\n");
+    exit(1);
+   }
+  #endif
+
+
+glEnable(GL_MULTISAMPLE);
     printf("OpenGL version: %s\n", glGetString(GL_VERSION));
 
   initialize();
-
   float t0 = float(glfwGetTime());
   while(!glfwWindowShouldClose(win)) {
     float t = float(glfwGetTime());
     update(t-t0);
-    t0 = t;
+    //t0 = t;
     display(win);
     glfwSwapBuffers(win);
     glfwPollEvents();
