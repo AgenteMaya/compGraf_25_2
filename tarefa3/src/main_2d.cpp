@@ -23,8 +23,9 @@
 #include "quad.h"
 #include "triangle.h"
 #include "disk.h"
-#include "moveEarth.h"
+/* #include "moveEarth.h"
 #include "moveMoon.h"
+#include "moveSun.h" */
 
 #include <iostream>
 
@@ -71,24 +72,30 @@ static void initialize (void)
   auto pointer = Node::Make(trf2,{Node::Make(trf3,{Color::Make(1,0,0)},{Triangle::Make()})}); */
 
 
-  //auto sun = Disk::Make(300);
-  auto trfSun = Transform::Make();
-  trfSun->Scale(0.8, 0.8, 1.0);
-  trfSun->Translate(5.9,6,0);
-  auto faceSun = Node::Make(trfSun, {Color::Make(1,1,0)}, {Disk::Make(300)});
-
+  auto trfMoon = Transform::Make();
+  trfMoon->Scale(0.4, 0.4, 1.0);
+  trfMoon->Translate(8,8,0);
+  auto faceMoon = Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)});
+  //auto faceMoon = Node::Make(trfEarth, {Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)})});
+ 
   auto trfEarth = Transform::Make();
   trfEarth->Scale(0.5, 0.5, 1.0);
-  trfEarth->Translate(15,15,0);
-  auto faceEarth = Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)});
+  trfEarth->Translate(8,8,0);
+  auto faceEarth = Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)}, {faceMoon});
+  //auto faceEarth = Node::Make(trfSun, {Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)})});
 
-  auto trfMoon = Transform::Make();
-  trfMoon->Scale(0.3, 0.3, 1.0);
-  trfMoon->Translate(25,30,0);
-  auto faceMoon = Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)});
 
+
+  //auto sun = Disk::Make(300);
+  auto trfSun = Transform::Make();
+  trfSun->Scale(0.6, 0.6, 1.0);
+  trfSun->Translate(9,8,0);
+  auto faceSun = Node::Make(trfSun, {Color::Make(1,1,0)}, {Disk::Make(300)}, {faceEarth});
 
   
+ 
+
+
   auto shader = Shader::Make();
   shader->AttachVertexShader("/home/mayara/Documentos/periodos/8periodo/compGraf_25_2/tarefa3/shaders/2d/vertex.glsl");
   shader->AttachFragmentShader("/home/mayara/Documentos/periodos/8periodo/compGraf_25_2/tarefa3/shaders/2d/fragment.glsl");
@@ -98,10 +105,11 @@ static void initialize (void)
   scene = Scene::Make(root);
   scene->AddEngine(MovePointer::Make(trf2)); */
 
-  auto root = Node::Make(shader, {faceSun, faceEarth, faceMoon});
+  auto root = Node::Make(shader, {faceSun});
   scene = Scene::Make(root);
-  scene->AddEngine(MoveEarth::Make(trfEarth));
-  scene->AddEngine(MoveMoon::Make(trfMoon));
+  scene->AddEngine(MovePointer::Make(trfEarth));
+  //scene->AddEngine(MovePointer::Make(trfMoon));
+  scene->AddEngine(MovePointer::Make(trfSun));
 }
 
 static void display (GLFWwindow* win)
@@ -171,7 +179,7 @@ glEnable(GL_MULTISAMPLE);
   while(!glfwWindowShouldClose(win)) {
     float t = float(glfwGetTime());
     update(t-t0);
-    //t0 = t;
+    t0 = t;
     display(win);
     glfwSwapBuffers(win);
     glfwPollEvents();

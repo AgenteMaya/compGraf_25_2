@@ -11,8 +11,6 @@
 #elif __linux__
 #include <glad/glad.h>
 #endif
-
-int j = 0;
 DiskPtr Disk::Make (int nslice)
 {
 
