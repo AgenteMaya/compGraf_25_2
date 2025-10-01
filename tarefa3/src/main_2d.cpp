@@ -23,29 +23,26 @@
 #include "quad.h"
 #include "triangle.h"
 #include "disk.h"
-/* #include "moveEarth.h"
-#include "moveMoon.h"
-#include "moveSun.h" */
 
 #include <iostream>
 
 static ScenePtr scene;
 static CameraPtr camera;
 
-class MovePointer;
-using MovePointerPtr = std::shared_ptr<MovePointer>;
-class MovePointer : public Engine 
+class MoveCosmos;
+using MoveCosmosPtr = std::shared_ptr<MoveCosmos>;
+class MoveCosmos : public Engine 
 {
   TransformPtr m_trf;
 protected:
-  MovePointer (TransformPtr trf) 
+  MoveCosmos (TransformPtr trf) 
   : m_trf(trf) 
   {
   }
 public:
-  static MovePointerPtr Make (TransformPtr trf)
+  static MoveCosmosPtr Make (TransformPtr trf)
   {
-    return MovePointerPtr(new MovePointer(trf));
+    return MoveCosmosPtr(new MoveCosmos(trf));
   }
   virtual void Update (float dt)
   {
@@ -61,39 +58,26 @@ static void initialize (void)
   glEnable(GL_DEPTH_TEST);
   // create objects
   camera = Camera2D::Make(0,10,0,10);  
-  /* auto trf1 = Transform::Make();
-  trf1->Translate(3.0f,3.0f,-0.5f);
-  trf1->Scale(4.0f,4.0f,1.0f);
-  auto face = Node::Make(trf1,{Color::Make(1,1,1)},{Quad::Make()});
-  auto trf2 = Transform::Make();
-  trf2->Translate(5.0f,5.0f,0.0f);
-  auto trf3 = Transform::Make();
-  trf3->Scale(0.1f,2.0f,1.0f);
-  auto pointer = Node::Make(trf2,{Node::Make(trf3,{Color::Make(1,0,0)},{Triangle::Make()})}); */
-
 
   auto trfMoon = Transform::Make();
   trfMoon->Scale(0.4, 0.4, 1.0);
   trfMoon->Translate(8,8,0);
   auto faceMoon = Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)});
-  //auto faceMoon = Node::Make(trfEarth, {Node::Make(trfMoon, {Color::Make(1,1,1)}, {Disk::Make(300)})});
  
   auto trfEarth = Transform::Make();
   trfEarth->Scale(0.5, 0.5, 1.0);
   trfEarth->Translate(8,8,0);
   auto faceEarth = Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)}, {faceMoon});
-  //auto faceEarth = Node::Make(trfSun, {Node::Make(trfEarth, {Color::Make(0,0,1)}, {Disk::Make(300)})});
 
-
-
-  //auto sun = Disk::Make(300);
   auto trfSun = Transform::Make();
   trfSun->Scale(0.6, 0.6, 1.0);
-  trfSun->Translate(9,8,0);
-  auto faceSun = Node::Make(trfSun, {Color::Make(1,1,0)}, {Disk::Make(300)}, {faceEarth});
+  trfSun->Translate(9,8,1);
+  auto faceSun = Node::Make(trfSun, {Color::Make(1,1,0)}, {Disk::Make(300)});
 
-  
- 
+  auto trfFalseSun = Transform::Make();
+  trfFalseSun->Scale(0.6, 0.6, 1.0);
+  trfFalseSun->Translate(9,8,1);
+  auto faceFalseSun = Node::Make(trfFalseSun, {faceEarth});
 
 
   auto shader = Shader::Make();
@@ -101,15 +85,12 @@ static void initialize (void)
   shader->AttachFragmentShader("/home/mayara/Documentos/periodos/8periodo/compGraf_25_2/tarefa3/shaders/2d/fragment.glsl");
   shader->Link();
   // build scene
-  /* auto root = Node::Make(shader, {face,pointer});
-  scene = Scene::Make(root);
-  scene->AddEngine(MovePointer::Make(trf2)); */
 
-  auto root = Node::Make(shader, {faceSun});
+  auto root = Node::Make(shader, {faceSun, faceFalseSun});
   scene = Scene::Make(root);
-  scene->AddEngine(MovePointer::Make(trfEarth));
-  //scene->AddEngine(MovePointer::Make(trfMoon));
-  scene->AddEngine(MovePointer::Make(trfSun));
+  scene->AddEngine(MoveCosmos::Make(trfEarth));
+  scene->AddEngine(MoveCosmos::Make(trfMoon));
+  scene->AddEngine(MoveCosmos::Make(trfFalseSun));
 }
 
 static void display (GLFWwindow* win)
