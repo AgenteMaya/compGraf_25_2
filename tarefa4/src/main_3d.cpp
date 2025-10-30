@@ -51,32 +51,38 @@ static void initialize (void)
   //camera->SetOrtho(true);
   arcball = camera->CreateArcball();
 
-  //LightPtr light = ObjLight::Make(viewer_pos[0],viewer_pos[1],viewer_pos[2]);
+  //LightPtr light = Light::Make(viewer_pos[0],viewer_pos[1],viewer_pos[2]);
   LightPtr light = Light::Make(0.0f,0.0f,0.0f,1.0f,"camera");
 
   AppearancePtr white = Material::Make(1.0f,1.0f,1.0f);
   AppearancePtr red = Material::Make(1.0f,0.5f,0.5f);
+  AppearancePtr yellow = Material::Make(1.0f,1.0f,0.0f);
   AppearancePtr poff = PolygonOffset::Make(-10,-10);
+  AppearancePtr green = Material::Make(0.0f,1.0f,0.0f);
   AppearancePtr paper = Texture::Make("decal","images/paper.jpg");
 
   TransformPtr trf1 = Transform::Make();
   trf1->Scale(3.0f,0.3f,3.0f);
   trf1->Translate(0.0f,-1.0f,0.0f);
-  TransformPtr trf2 = Transform::Make();
-  trf2->Scale(0.5f,0.5f,0.5f);
-  trf2->Translate(0.0f,1.0f,0.0f);
-  TransformPtr trf3 = Transform::Make();
-  trf3->Translate(0.8f,0.0f,0.8f);
-  trf3->Rotate(30.0f,0.0f,1.0f,0.0f);
-  trf3->Rotate(90.0f,-1.0f,0.0f,0.0f);
-  trf3->Scale(0.5f,0.7f,1.0f);
+  TransformPtr trf2 = Transform::Make(); //esfera verde
+  trf2->Scale(0.3f,0.3f,0.3f);
+  trf2->Translate(-1.5f,2.6f,1.5f);
+  TransformPtr trf3 = Transform::Make(); //esfera vermelha
+  trf3->Scale(0.5f,0.5f,0.5f);
+  trf3->Translate(1.5f,1.0f,-1.5f);
+  TransformPtr trf4 = Transform::Make();
+  trf4->Scale(1.0f,0.5f,1.0f);
+  trf4->Translate(-0.5f,0.0f,0.5f);
+
 
   Error::Check("before shps");
   ShapePtr cube = Cube::Make();
-  Error::Check("before quad");
-  ShapePtr quad = Quad::Make();
   Error::Check("before sphere");
   ShapePtr sphere = Sphere::Make();
+  Error::Check("before sphereB");
+  ShapePtr sphereB = Sphere::Make();
+  Error::Check("before cubeA");
+  ShapePtr cubeA = Cube::Make();
   Error::Check("after shps");
 
   // create shader
@@ -94,9 +100,10 @@ static void initialize (void)
 
   // build scene
   NodePtr root = Node::Make(shader,
-    {Node::Make(trf1,{red},{cube}),
-     Node::Make(shd_tex,trf3,{white,poff,paper},{quad}),
-     Node::Make(trf2,{white},{sphere})
+    {Node::Make(trf1,{white},{cube}),
+     Node::Make(trf2,{green},{sphere}),
+     Node::Make(trf3,{red},{sphereB}),
+     Node::Make(trf4,{yellow},{cubeA})
     }
   );
   scene = Scene::Make(root);
